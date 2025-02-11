@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  pg_egorovamin:
+    image: postgres
+    container_name: egorovamin-postgres
+    restart: always
+    depends_on:
+      - telegram_bot
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./config/.env
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+    networks:
+      egorovamlnbot_postgres_network:
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    depends_on:
+      - pg_egorovamin
+    ports:
+      - "8888:80"
+    env_file:
+      - ./config/.env
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      egorovamlnbot_postgres_network:
+
+  telegram_bot:
+    build: .
+    container_name: tg-milena-bot
+    restart: unless-stopped
+    volumes:
+      - .:/egorovamin
+    networks:
+      egorovamlnbot_postgres_network:
+    command: python manage.py
+
+
+
+volumes:
+  local_pgdata:
+  pgadmin-data:
+
+networks:
+  egorovamlnbot_postgres_network:
+    driver: bridge
+
+
+
+
